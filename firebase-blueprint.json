@@ -1,0 +1,191 @@
+{
+  "entities": {
+    "Shop": {
+      "title": "Shop",
+      "description": "Details about the coffee shop and its owner",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "activeCashier": { "type": "string" },
+        "branchName": { "type": "string" },
+        "healthScore": { "type": "integer" },
+        "scoreTrend": { "type": "string" }
+      },
+      "required": ["name", "ownerName"]
+    },
+    "Sales": {
+      "title": "Sales",
+      "description": "Daily sales performance data",
+      "type": "object",
+      "properties": {
+        "revenue": { "type": "number" },
+        "transactions": { "type": "integer" },
+        "itemsSold": { "type": "integer" },
+        "topSellingToday": { "type": "string" },
+        "slowestMenuToday": { "type": "string" },
+        "avgOrderValue": { "type": "number" },
+        "yesterdayRevenue": { "type": "number" },
+        "revenueChange": { "type": "number" },
+        "bestDayThisWeek": { "type": "string" },
+        "cashRevenue": { "type": "number" },
+        "qrisRevenue": { "type": "number" },
+        "transferRevenue": { "type": "number" },
+        "date": { "type": "string", "format": "date" }
+      }
+    },
+    "InventoryItem": {
+      "title": "Inventory Item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "stock": { "type": "number" },
+        "unit": { "type": "string" },
+        "threshold": { "type": "number" },
+        "status": { "type": "string", "enum": ["in_stock", "low", "out_of_stock"] }
+      }
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      }
+    },
+    "MenuItem": {
+      "title": "Menu Item",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "available": { "type": "boolean" }
+      },
+      "required": ["name", "price"]
+    },
+    "Order": {
+      "title": "Order",
+      "type": "object",
+      "properties": {
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["cash", "qris"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["completed", "cancelled"] }
+      }
+    },
+    "CustomerChat": {
+      "title": "Customer Chat",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "lastTimestamp": { "type": "string", "format": "date-time" },
+        "unreadCount": { "type": "integer" }
+      }
+    },
+    "CustomerMessage": {
+      "title": "Customer Message",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "role": { "type": "string", "enum": ["customer", "shop"] }
+      }
+    },
+    "QueueItem": {
+      "title": "Queue Item",
+      "type": "object",
+      "properties": {
+        "queueNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "status": { "type": "string", "enum": ["waiting", "processing", "ready", "completed"] },
+        "orderId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "readyAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "WaiterCall": {
+      "title": "Waiter Call",
+      "type": "object",
+      "properties": {
+        "tableNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "resolved"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "CustomerOrder": {
+      "title": "Customer Order",
+      "description": "Orders placed by customers from the landing page",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "contactInfo": { "type": "string" },
+        "tableNumber": { "type": "string" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "processing", "ready", "completed", "rejected"] },
+        "paymentMethod": { "type": "string", "enum": ["cash", "qris", "e-wallet"] },
+        "paymentStatus": { "type": "string", "enum": ["pending", "paid"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "queueNumber": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "required": ["customerName", "tableNumber", "items", "total", "status"]
+    }
+  },
+  "firestore": {
+    "shops/{shopId}": {
+      "schema": "Shop",
+      "description": "Primary shop configuration"
+    },
+    "shops/{shopId}/sales/{date}": {
+      "schema": "Sales",
+      "description": "Daily sales stats"
+    },
+    "shops/{shopId}/inventory/{itemId}": {
+      "schema": "InventoryItem",
+      "description": "Inventory tracking"
+    },
+    "shops/{shopId}/menu/{itemId}": {
+      "schema": "MenuItem",
+      "description": "Shop menu items"
+    },
+    "shops/{shopId}/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
+    },
+    "shops/{shopId}/customer_orders/{orderId}": {
+      "schema": "CustomerOrder",
+      "description": "Realtime orders from landing page"
+    },
+    "shops/{shopId}/customer_chats/{chatId}": {
+      "schema": "CustomerChat",
+      "description": "Customer chat sessions"
+    },
+    "shops/{shopId}/customer_chats/{chatId}/messages/{msgId}": {
+      "schema": "CustomerMessage",
+      "description": "Messages within a customer chat"
+    },
+    "shops/{shopId}/queue/{queueId}": {
+      "schema": "QueueItem",
+      "description": "Live order queue"
+    },
+    "shops/{shopId}/waiter_calls/{callId}": {
+      "schema": "WaiterCall",
+      "description": "Customer assistance calls"
+    },
+    "users/{userId}/messages": {
+      "schema": "ChatMessage",
+      "description": "User chat history with KOPIX AI"
+    }
+  }
+}

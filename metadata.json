@@ -1,0 +1,6 @@
+{
+  "name": "WARUNG+",
+  "description": "Platform Manajemen Toko termodern & aksesibel untuk UMKM kuliner. Fitur utama: POS Pintar, Pemesanan Mandiri (Customer Order System), Antrian Otomatis, dan Asisten AI Voice Dashboard.",
+  "requestFramePermissions": ["geolocation", "microphone"],
+  "majorCapabilities": []
+}

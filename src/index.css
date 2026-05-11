@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Libre Baskerville", serif;
+  --font-display: "Playfair Display", serif;
+
+  --color-coffee-dark: #3E2723;
+  --color-coffee-medium: #5D4037;
+  --color-coffee-accent: #F27D26;
+  --color-coffee-bg: #FDFBF7;
+  --color-coffee-border: #E8E2D9;
+  --color-coffee-text: #2D241E;
+  --color-coffee-muted: #8D8171;
+  --color-coffee-sub: #FAF8F5;
+  --color-coffee-neutral: #F5F1EB;
+}
+
+@layer base {
+  body {
+    @apply bg-coffee-bg text-coffee-text antialiased selection:bg-orange-500 selection:text-white;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+  
+  /* Momentum scrolling for iOS and smooth scroll container */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* GPU Acceleration utility */
+  .gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform, opacity;
+  }
+
+  /* Performance friendly shadows */
+  .shadow-soft {
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Optimize blur for low end - usually handled by browser but we can be explicit */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Touch action optimizations for buttons */
+  button, [role="button"] {
+    touch-action: manipulation;
+  }
+
+  .markdown-body {
+    @apply leading-relaxed text-inherit;
+  }
+  .markdown-body p {
+    @apply mb-2;
+  }
+  .markdown-body ul {
+    @apply list-disc list-inside mb-2;
+  }
+  .markdown-body ol {
+    @apply list-decimal list-inside mb-2;
+  }
+  .markdown-body bold,
+  .markdown-body strong {
+    @apply font-bold;
+  }
+}
+
+/* Accessibility Modes overrides */
+html.accessibility-senior {
+  font-size: 18px; /* Scales up base rem size, enlarging text & components globally */
+}
+
+@media (min-width: 1024px) {
+  html.accessibility-senior {
+    font-size: 20px;
+  }
+}
+
+html.accessibility-high-contrast {
+  /* Increase contrast by darkening text and lightening backgrounds even more */
+  --color-coffee-dark: #000000;
+  --color-coffee-medium: #111111;
+  --color-coffee-text: #000000;
+  --color-coffee-muted: #333333;
+  --color-coffee-bg: #FFFFFF;
+  --color-coffee-sub: #F0F0F0;
+  --color-coffee-neutral: #E0E0E0;
+  --color-coffee-border: #444444;
+  --color-coffee-accent: #D94600; /* Darker, more contrasty orange */
+}
+
+/* Enhancing focus outlines for keyboard navigation when in accessibility modes */
+html.accessibility-senior *:focus-visible,
+html.accessibility-high-contrast *:focus-visible {
+  outline: 4px solid #0000FF !important;
+  outline-offset: 2px !important;
+}
+
+/* Lite Mode Performance Overrides */
+html.lite-mode * {
+  /* Disable all transitions and animations to save CPU/GPU */
+  transition: none !important;
+  animation: none !important;
+  /* Disable blurs */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  /* Simplify box shadows */
+  box-shadow: none !important;
+}
+
+/* Base simplified shadows for lite mode where absolutely necessary */
+html.lite-mode .shadow-lg, html.lite-mode .shadow-xl, html.lite-mode .shadow-2xl {
+  border: 1px solid var(--color-coffee-border) !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+}

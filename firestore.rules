@@ -1,0 +1,173 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidShop(data) {
+      return data.keys().hasAll(['name', 'ownerName']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.ownerName is string && data.ownerName.size() <= 100;
+    }
+
+    function isValidSales(data) {
+      return data.keys().hasAll(['revenue', 'transactions', 'date']) &&
+             data.revenue is number &&
+             data.transactions is int &&
+             data.date is string;
+    }
+
+    function isValidInventory(data) {
+      return data.keys().hasAll(['name', 'stock', 'status']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.stock is number &&
+             data.status in ['in_stock', 'low', 'out_of_stock'];
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['role', 'content', 'createdAt', 'userId']) &&
+             data.role in ['user', 'assistant'] &&
+             data.content is string && data.content.size() <= 5000 &&
+             data.userId == request.auth.uid;
+    }
+
+    function isValidMenuItem(data) {
+      return data.keys().hasAll(['name', 'price']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.price is number;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['items', 'total', 'paymentMethod', 'status']) &&
+             data.items is list &&
+             data.total is number &&
+             data.paymentMethod in ['cash', 'qris'] &&
+             data.status in ['completed', 'cancelled'];
+    }
+
+    function isValidCustomerChat(data) {
+      return data.keys().hasAll(['customerName', 'lastMessage', 'unreadCount']) &&
+             data.customerName is string &&
+             data.lastMessage is string &&
+             data.unreadCount is int;
+    }
+
+    function isValidCustomerMessage(data) {
+      return data.keys().hasAll(['senderId', 'senderName', 'content', 'role']) &&
+             data.senderId is string &&
+             data.senderName is string &&
+             data.content is string &&
+             data.role in ['customer', 'shop'];
+    }
+
+    function isValidQueueItem(data) {
+      return data.keys().hasAll(['queueNumber', 'status', 'createdAt']) &&
+             data.queueNumber is string &&
+             data.status in ['waiting', 'processing', 'ready', 'completed'];
+    }
+
+    function isValidWaiterCall(data) {
+      return data.keys().hasAll(['tableNumber', 'status', 'createdAt']) &&
+             data.tableNumber is string &&
+             data.status in ['pending', 'resolved'];
+    }
+
+    function isValidCustomerOrder(data) {
+      return data.keys().hasAll(['customerName', 'tableNumber', 'items', 'total', 'status']) &&
+             data.customerName is string && data.customerName.size() <= 100 &&
+             data.tableNumber is string && data.tableNumber.size() <= 10 &&
+             data.items is list &&
+             data.total is number &&
+             data.status in ['pending', 'confirmed', 'processing', 'ready', 'completed', 'rejected'];
+    }
+
+    // --- Collection Matches ---
+
+    match /shops/{shopId} {
+      allow read: if isSignedIn() || true; // Allow public shop info
+      allow create, update: if isSignedIn() && isValidShop(incoming());
+
+      match /sales/{date} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn() && isValidSales(incoming());
+      }
+
+      match /inventory/{itemId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn() && isValidInventory(incoming());
+        allow delete: if isSignedIn();
+      }
+
+      match /menu/{itemId} {
+        allow read: if true;
+        allow create, update: if isSignedIn() && isValidMenuItem(incoming());
+        allow delete: if isSignedIn();
+      }
+
+      match /orders/{orderId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && isValidOrder(incoming());
+        allow update: if isSignedIn() && isValidOrder(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      }
+
+      match /customer_orders/{orderId} {
+        allow get: if true;
+        allow list: if isSignedIn();
+        allow create: if isValidCustomerOrder(incoming()) && incoming().status == 'pending';
+        allow update: if isSignedIn() && isValidCustomerOrder(incoming());
+      }
+
+      match /customer_chats/{chatId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn() && isValidCustomerChat(incoming());
+
+        match /messages/{msgId} {
+          allow read: if isSignedIn();
+          allow create: if isSignedIn() && isValidCustomerMessage(incoming());
+        }
+      }
+
+      match /queue/{queueId} {
+        allow read: if isSignedIn() || true; // Public for display
+        allow create, update: if isSignedIn() && isValidQueueItem(incoming());
+        allow delete: if isSignedIn();
+      }
+
+      match /waiter_calls/{callId} {
+        allow read: if isSignedIn();
+        allow create, update: if (isSignedIn() || true) && isValidWaiterCall(incoming());
+        allow delete: if isSignedIn();
+      }
+    }
+
+    match /users/{userId}/messages/{msgId} {
+      allow read, delete: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidChatMessage(incoming());
+    }
+  }
+}
